@@ -277,7 +277,7 @@ Los tests de `IsEmpty` ya están activos en `StringTest.c`. Corré `make test` y
 
 **P1** — `IsEmpty` podría haberse escrito también como `return s[0] == '\0'`. ¿Son equivalentes? ¿Por qué?
 
-> R:
+> R:Sí, son lo mismo. s[0] en C es solo otra forma de escribir *(s + 0), que es *s. Las dos agarran el primer carácter y lo comparan con '\0'; cambia cómo se escribe, nada más.
 
 ---
 
@@ -328,14 +328,14 @@ make test
 
 **P2** — ¿Qué hace `s + 1`? ¿Por qué avanza al siguiente carácter y no al siguiente byte?
 
-> R:
+> R:s + 1 es aritmética de punteros: te da la dirección del siguiente elemento, o sea s + 1 * sizeof(*s). Con char, que mide 1 byte, el siguiente elemento y el siguiente byte son lo mismo. Con un int * saltaría 4 bytes. Por eso en GetLength, s + 1 apunta al resto de la cadena.
 
 **P3** — Si llamaras a `GetLength(NULL)`, ¿qué pasaría? ¿Por qué las precondiciones del contrato dicen `s != NULL`?
 
-> R:
+> R:GetLength(NULL) es comportamiento indefinido: IsEmpty hace *s y desreferencia un puntero nulo, normalmente termina en segmentation fault. Por eso el contrato pide s != NULL: la función no puede arreglarlo sola, tiene que asegurarlo quien la llama.
 
 ```
-GETLENGTH_PASA=
+GETLENGTH_PASA=SI
 ```
 _(escribí SI cuando todos los tests de GetLength pasen)_
 
@@ -367,7 +367,10 @@ El `while` termina cuando alguna de las dos cadenas llega a `'\0'`. Después dev
 
 **P4** — ¿Qué dos casos están mal cubiertos por `return 1`? Describí un ejemplo para cada uno.
 
-> R:
+> R:El while corta apenas una de las dos cadenas termina, pero el return 1 no se fija si la otra también terminó. Pasa en dos casos:
+
+AreEqual("hola", "hola mundo"): s1 se acaba primero y devuelve 1, cuando debería dar 0.
+AreEqual("hola mundo", "hola"): lo mismo al revés, se acaba s2 y devuelve 1 igual.
 
 #### Corrección
 
@@ -384,7 +387,7 @@ make test
 ```
 
 ```
-AREEQUAL_PASA=
+AREEQUAL_PASA=SI
 ```
 _(escribí SI cuando todos los tests de AreEqual pasen)_
 
@@ -414,7 +417,7 @@ int AreDecimalDigits(const char *s) {
 
 **P5** — ¿Por qué la cadena vacía no debería considerarse un conjunto de dígitos decimales? Pensalo desde la especificación matemática.
 
-> R:
+> R:Un número decimal tiene que tener al menos un dígito, y la cadena vacía no tiene ninguno, así que no es un número válido. Si devolviera 1, algo como una conversión a entero aceptaría "" como si fuera un número. Por eso el return 1 está mal y debería devolver 0.
 
 #### Corrección
 
@@ -425,7 +428,7 @@ make test
 ```
 
 ```
-AREDECIMALDIGITS_PASA=
+AREDECIMALDIGITS_PASA=SI
 ```
 _(escribí SI cuando todos los tests de AreDecimalDigits pasen)_
 
@@ -452,7 +455,7 @@ make test
 ```
 
 ```
-CONTAINS_PASA=
+CONTAINS_PASA=SI
 ```
 _(escribí SI cuando todos los tests de Contains pasen)_
 
@@ -467,7 +470,7 @@ Antes de implementar, discutí con tu equipo:
 
 **P6** — Conclusión de la discusión:
 
-> R:
+> R:Mejor en un módulo separado. String se ocupa de manipular cadenas, y convertir una cadena a número es otra responsabilidad. Así cada módulo tiene un solo propósito, Conversion puede usar String (por ejemplo AreDecimalDigits) sin que String dependa de él, y si después hay más conversiones ya tienen su lugar.
 
 ---
 
@@ -494,7 +497,7 @@ int ToInteger(const char *s) {
 
 **P7** — El loop acumula correctamente el valor en `resultado`. ¿Qué está mal en el `return`?
 
-> R:
+> R:El return devuelve signo (1 o -1) en vez del valor acumulado. El loop calcula bien el número en resultado, pero nunca se devuelve, así que la función siempre da 1 o -1. Tiene que ser return signo * resultado;.
 
 #### Corrección
 
@@ -506,10 +509,10 @@ make test
 
 **P8** — La expresión `*s - '0'` convierte un carácter dígito al entero correspondiente. ¿Por qué funciona? ¿Qué devuelve `'3' - '0'`?
 
-> R:
+> R:Los dígitos en ASCII están en orden y consecutivos: '0' vale 48, '1' 49, ..., '9' 57. Restarle '0' a un dígito te da su posición en esa secuencia, o sea su valor. '3' - '0' da 3 (51 - 48).
 
 ```
-TOINTEGER_PASA=
+TOINTEGER_PASA=SI
 ```
 _(escribí SI cuando todos los tests de ToInteger pasen)_
 
@@ -562,7 +565,7 @@ foo
 
 **P9** — ¿Por qué `(void)argc` suprime un warning? ¿Cuándo sería necesario usar `argc`?
 
-> R:
+> R:argc está declarado pero no se usa, y el compilador avisa “unused parameter”. (void)argc; lo “usa” sin hacer nada, así que el warning se va. Se necesita argc cuando querés saber cuántos argumentos hay sin recorrer hasta el NULL, por ejemplo para validar que pasaron al menos N argumentos.
 
 ---
 
@@ -589,7 +592,7 @@ Salida esperada:
 ```
 
 ```
-LONGITUDES_PASA=
+LONGITUDES_PASA=SI
 ```
 _(SI o NO)_
 
@@ -616,7 +619,7 @@ make mayorlongitud
 ```
 
 ```
-MAYORLONGITUD_PASA=
+MAYORLONGITUD_PASA=SI
 ```
 _(SI o NO)_
 
@@ -635,7 +638,7 @@ make todosiguales
 ```
 
 ```
-TODOSIGUALES_PASA=
+TODOSIGUALES_PASA=SI
 ```
 _(SI o NO)_
 
@@ -652,7 +655,7 @@ make suma
 ```
 
 ```
-SUMA_PASA=
+SUMA_PASA=SI
 ```
 _(SI o NO)_
 
@@ -662,15 +665,15 @@ _(SI o NO)_
 
 **P10** — `GetLength` es recursiva pero en C una llamada recursiva consume un stack frame. Si llamaras `GetLength` con un string de 1.000.000 de caracteres, ¿qué pasaría? ¿Cómo lo resolverías?
 
-> R:
+> R:Cada llamada se come un stack frame, así que con un millón de caracteres se te desborda el stack y el programa se cae. Se arregla con una versión iterativa: un while que avanza el puntero y va contando, sin gastar stack.
 
 **P11** — En la Parte III, todos los programas usan `char **arg` para iterar en vez de un índice entero. ¿Qué ventaja tiene este estilo? ¿Cuándo sería preferible usar el índice?
 
-> R:
+> R:Te ahorrás el argc y los índices: recorrés hasta el NULL y listo, con menos lugar para errores. El índice sirve cuando necesitás saber la posición (por ejemplo, numerar los argumentos) o agarrar uno puntual como argv[1].
 
 **P12** — En C, `"hola"` es un literal de tipo `const char *`. Si intentaras modificar un carácter con `s[0] = 'H'`, el comportamiento es indefinido. ¿Por qué? ¿En qué parte de la memoria viven los literales?
 
-> R:
+> R:Los literales viven en una zona de memoria de solo lectura (.rodata). Si intentás escribir ahí, el sistema operativo te frena y suele saltar un segmentation fault. Por eso es comportamiento indefinido, y por eso se usa const char *: para que el compilador te avise.
 
 ---
 
